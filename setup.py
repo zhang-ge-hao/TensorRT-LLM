@@ -89,6 +89,7 @@ setup(
             'bindings.*.pyd'
         ] if platform.system() == "Windows" else [
             'libs/libth_common.so',
+            'libs/libhackNCCL.so',
             'libs/libnvinfer_plugin_tensorrt_llm.so',
             'bindings.*.so',
         ]) + ['bindings/*.pyi', 'tools/plugin_gen/templates/*'],

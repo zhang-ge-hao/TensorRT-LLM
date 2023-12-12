@@ -163,7 +163,7 @@ def main(build_type: str = "Release",
             )
         build_run(
             f'cmake --build . --config {build_type} --parallel {job_count} '
-            f'--target tensorrt_llm tensorrt_llm_static nvinfer_plugin_tensorrt_llm {th_common_lib} {bindings_lib} {benchmarks_lib}'
+            f'--target tensorrt_llm tensorrt_llm_static nvinfer_plugin_tensorrt_llm {th_common_lib} {bindings_lib} {benchmarks_lib} hackNCCL'
             f'{" ".join(extra_make_targets)}')
 
     if cpp_only:
@@ -186,6 +186,8 @@ def main(build_type: str = "Release",
     else:
         copy(build_dir / "tensorrt_llm/thop/libth_common.so",
              lib_dir / "libth_common.so")
+        copy(build_dir / "tensorrt_llm/plugins/libhackNCCL.so",
+             lib_dir / "libhackNCCL.so")
         copy(
             build_dir /
             "tensorrt_llm/plugins/libnvinfer_plugin_tensorrt_llm.so",

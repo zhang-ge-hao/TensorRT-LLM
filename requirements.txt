@@ -11,7 +11,8 @@ polygraphy
 sentencepiece>=0.1.99
 tensorrt>=8.6.0
 torch
-transformers==4.33.1
+transformers>=4.33.1
 wheel
 optimum
 evaluate
+pynvml==11.4.1

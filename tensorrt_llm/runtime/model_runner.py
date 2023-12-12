@@ -20,6 +20,7 @@ from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import torch
+import torch.distributed as dist
 
 from .. import profiler
 from .._utils import mpi_world_size
@@ -80,8 +81,12 @@ def read_config(config_path: Path) -> Tuple[ModelConfig, dict]:
     tp_size = builder_config['tensor_parallel']
     pp_size = builder_config.get('pipeline_parallel', 1)
     world_size = tp_size * pp_size
-    assert world_size == mpi_world_size(), \
-        f'Engine world size ({tp_size} * {pp_size}) != Runtime world size ({mpi_world_size()})'
+    try:
+        runtime_world_size = dist.get_world_size()
+    except:
+        runtime_world_size = 1
+    assert world_size == runtime_world_size, \
+        f'Engine world size ({tp_size} * {pp_size}) != Runtime world size ({runtime_world_size})'
 
     num_heads = builder_config['num_heads']
     assert num_heads % tp_size == 0, \

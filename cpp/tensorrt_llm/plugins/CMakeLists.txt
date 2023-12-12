@@ -121,4 +121,20 @@ target_link_libraries(
   ${CMAKE_DL_LIBS}
   ${MPI_LIBRARIES}
   ${NCCL_LIB}
-  ${STATIC_TARGET})
+  ${STATIC_TARGET}
+  ${Python3_LIBRARIES})
+
+execute_process(
+  COMMAND ${Python3_EXECUTABLE} "-c"
+          "import os; import pybind11; print(os.path.dirname(pybind11.__file__),end='');"
+  RESULT_VARIABLE _PYTHON_SUCCESS
+  OUTPUT_VARIABLE PYBIND11_DIR)
+if(NOT _PYTHON_SUCCESS MATCHES 0)
+  message(FATAL_ERROR "Pybind11 config Error.")
+endif()
+list(APPEND CMAKE_PREFIX_PATH ${PYBIND11_DIR})
+find_package(pybind11 REQUIRED)
+
+add_library(hackNCCL SHARED ./ncclPlugin/nccl_inherit_utils.cpp)
+set_property(TARGET hackNCCL PROPERTY POSITION_INDEPENDENT_CODE  ON)
+target_link_libraries(hackNCCL PRIVATE pybind11::module)

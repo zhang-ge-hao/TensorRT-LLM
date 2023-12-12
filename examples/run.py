@@ -19,6 +19,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
+import torch.distributed as dist
 from utils import (DEFAULT_HF_MODEL_DIRS, DEFAULT_PROMPT_TEMPLATES,
                    load_tokenizer, read_model_name, throttle_generator)
 
@@ -260,8 +261,20 @@ def print_output(tokenizer,
 
 
 def main(args):
-    runtime_rank = tensorrt_llm.mpi_rank()
     logger.set_level(args.log_level)
+    
+    dist.init_process_group(backend='nccl')
+    runtime_rank = dist.get_rank()
+    runtime_world_size = dist.get_world_size()
+    torch.cuda.set_device(runtime_rank % torch.cuda.device_count())
+    from tensorrt_llm.libs import libhackNCCL
+    uid_vec = libhackNCCL.nccl_create_uniqueId()
+    uid_vec = torch.tensor(uid_vec).cuda()
+    dist.broadcast(uid_vec, src=0)
+    uid_vec = uid_vec.tolist()
+    libhackNCCL.nccl_get_info(runtime_rank, runtime_world_size, uid_vec)
+    
+    logger.info("rank %d started" % runtime_rank)
 
     model_name = read_model_name(args.engine_dir)
     if args.tokenizer_dir is None:
